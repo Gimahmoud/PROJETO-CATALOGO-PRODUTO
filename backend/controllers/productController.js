@@ -1,19 +1,36 @@
+const { Op } = require('sequelize');
 const Product = require('../models/Product');
 
-// Obter todos os produtos
+// Obter todos os produtos com suporte à paginação e busca
 const getProducts = async (req, res) => {
-  const limit = parseInt(req.query.limit) || 10;  // Limite de produtos por página
-  const offset = parseInt(req.query.offset) || 0;  // Posição inicial
+  const limit = parseInt(req.query.limit) || 10;  // Quantos produtos por página
+  const page = parseInt(req.query.page) || 1;  // Qual página buscar
+  const offset = (page - 1) * limit;  // Calcula o deslocamento para a paginação
+  const searchTerm = req.query.search || '';  // Termo de busca
+
   try {
-    const products = await Product.findAndCountAll({ limit, offset });
-    res.status(200).json({
-      total: products.count,
-      data: products.rows,
-      limit,
-      offset,
+    // Filtro de busca pelo nome do produto
+    const whereCondition = searchTerm ? {
+      name: {
+        [Op.iLike]: `%${searchTerm}%`  // Busca produtos cujo nome contém o termo, ignorando maiúsculas/minúsculas
+      }
+    } : {};
+
+    // Buscando produtos com filtro e paginação
+    const products = await Product.findAndCountAll({
+      where: whereCondition,
+      limit: limit,
+      offset: offset,
     });
-  } catch (err) {
-    res.status(500).json({ message: 'Erro ao obter produtos', error: err.message });
+
+    res.status(200).json({
+      totalItems: products.count,  // Total de produtos
+      totalPages: Math.ceil(products.count / limit),  // Quantidade total de páginas
+      currentPage: page,
+      data: products.rows,  // Produtos da página atual
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao buscar produtos', error: error.message });
   }
 };
 
@@ -41,6 +58,7 @@ const createProduct = async (req, res) => {
   }
 };
 
+// Editar produto
 const updateProduct = async (req, res) => {
   try {
     const { name, price, quantity } = req.body;  // Certifique-se de que você está recebendo os dados certos
@@ -76,7 +94,5 @@ const deleteProduct = async (req, res) => {
     res.status(500).json({ message: 'Erro ao deletar o produto', error: err.message });
   }
 };
-
-
 
 module.exports = { getProducts, getProduct, createProduct, updateProduct, deleteProduct };
