@@ -1,102 +1,149 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import ProductForm from './ProductForm'; // Importe o formulário de produto
+import ProductForm from './ProductForm';
+import ProductDetails from './ProductDetails';
+import '../App.css';
 
 function ProductList() {
-  const [products, setProducts] = useState([]);  // Inicializa a lista de produtos
-  const [searchTerm, setSearchTerm] = useState('');  // Estado para o termo de pesquisa
-  const [error, setError] = useState(null);  // Estado para armazenar erros
-  const [productToEdit, setProductToEdit] = useState(null);  // Estado para o produto a ser editado
-  const [currentPage, setCurrentPage] = useState(1);  // Página atual
-  const [totalPages, setTotalPages] = useState(1);  // Número total de páginas
-  const limit = 10;  // Produtos por página
+  const [products, setProducts] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [orderBy, setOrderBy] = useState(''); // Controle de ordenação
+  const [productToEdit, setProductToEdit] = useState(null);
+  const [selectedProductId, setSelectedProductId] = useState(null);
+  const [error, setError] = useState(null);
+  const limit = 10;
 
-  // Função para buscar a lista de produtos com paginação e pesquisa
+  const fetchProducts = async () => {
+    try {
+      const response = await axios.get(`http://localhost:5000/products`, {
+        params: {
+          page: currentPage,
+          limit: limit,
+          name: searchTerm,
+          orderBy: orderBy,  // Enviar o valor de ordenação para a API
+        },
+      });
+
+      const processedProducts = response.data.data.map(product => ({
+        ...product,
+        price: parseFloat(product.price),
+        quantity: parseInt(product.quantity, 10)
+      }));
+
+      setProducts(processedProducts);
+      setTotalPages(response.data.totalPages);
+      setError(null);
+    } catch (error) {
+      console.error('Erro ao buscar os produtos:', error);
+      setError('Erro ao carregar os produtos');
+    }
+  };
+
+  // Recarregar a lista ao mudar página, termo de pesquisa ou ordenação
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        console.log('Fetching products with search term:', searchTerm);  // Adiciona log para verificar o termo de busca
-        const response = await axios.get(`http://localhost:5000/products`, {
-          params: {
-            page: currentPage,
-            limit: limit,
-            search: searchTerm,  // Passa o termo de pesquisa para o back-end
-          },
-        });
-
-        console.log('Response data:', response.data);  // Adiciona log para verificar os dados retornados
-        setProducts(response.data.data);  // Define os produtos retornados pelo back-end
-        setTotalPages(response.data.totalPages);  // Define o número total de páginas
-        setError(null);  // Limpa o erro anterior, se houver
-      } catch (error) {
-        console.error('Erro ao buscar os produtos:', error);
-        setError('Erro ao carregar os produtos');
-      }
-    };
-
     fetchProducts();
-  }, [currentPage, searchTerm]);  // Escuta as mudanças de `currentPage` e `searchTerm`
+  }, [currentPage, searchTerm, orderBy]); // Atualizado para incluir 'orderBy'
 
-  // Função para mudar de página
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleOrderChange = (e) => {
+    setOrderBy(e.target.value);  // Mudar o estado de ordenação
+    setCurrentPage(1);  // Reseta a página para a primeira ao mudar a ordenação
+  };
+
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
 
-  // Função para lidar com a pesquisa de produtos
-  const handleSearch = (e) => {
-    const term = e.target.value.toLowerCase();  // Termo de busca em letras minúsculas
-    setSearchTerm(term);
-    setCurrentPage(1);  // Reiniciar para a primeira página quando a pesquisa mudar
-    console.log('Search term changed to:', term);  // Log para verificar o novo termo de busca
+  const deleteProduct = async (id) => {
+    try {
+      await axios.delete(`http://localhost:5000/products/${id}`);
+      fetchProducts();
+    } catch (error) {
+      console.error('Erro ao excluir o produto:', error);
+    }
+  };
+
+  const handleFormSubmit = () => {
+    setProductToEdit(null);
+    fetchProducts();
+  };
+
+  const handleProductClick = (productId) => {
+    setSelectedProductId(productId);
+    window.history.pushState(null, '', `/product/${productId}`);
+  };
+
+  const handleCloseDetails = () => {
+    setSelectedProductId(null);
+    window.history.pushState(null, '', '/');
   };
 
   return (
-    <div>
-      <h2>{productToEdit ? 'Editar Produto' : 'Adicionar Novo Produto'}</h2>
+    <div className="App">
+      <h1>Gerenciamento de Produtos</h1>
 
-      <ProductForm productToEdit={productToEdit} onFormSubmit={() => setCurrentPage(1)} />
+      <ProductForm productToEdit={productToEdit} onFormSubmit={handleFormSubmit} />
 
-      {/* Campo de pesquisa */}
-      <input
-        type="text"
-        placeholder="Pesquisar Produto"
-        value={searchTerm}
-        onChange={handleSearch}
-        style={{ margin: '20px 0', padding: '10px', width: '100%' }}
-      />
+      <div className="search-order-container">
+        <input
+          type="text"
+          placeholder="Pesquisar por nome"
+          value={searchTerm}
+          onChange={handleSearch}
+        />
+        <select onChange={handleOrderChange} value={orderBy}>
+          <option value="">Ordenar por</option>
+          <option value="quantity-asc">Quantidade (Crescente)</option>
+          <option value="quantity-desc">Quantidade (Decrescente)</option>
+          <option value="price-asc">Preço (Crescente)</option>
+          <option value="price-desc">Preço (Decrescente)</option>
+        </select>
+      </div>
 
       <h2>Lista de Produtos</h2>
       {error ? (
-        <p>{error}</p>
+        <p className="error-message">{error}</p>
       ) : (
         <>
           <ul>
             {products.map((product) => (
-              <li key={product.id}>
+              <li key={product.id} onClick={() => handleProductClick(product.id)}>
                 <div className="product-content">
-                  {product.name} - R$ {product.price} (Quantidade: {product.quantity})
+                  <strong>{product.name}</strong> - R$ {product.price.toFixed(2)}
+                  <br />
+                  <small>Quantidade: {product.quantity}</small>
                 </div>
                 <div className="button-container">
-                  <button onClick={() => setProductToEdit(product)}>Editar</button>
-                  <button onClick={() => deleteProduct(product.id)}>Excluir</button>
+                  <button onClick={(e) => { e.stopPropagation(); setProductToEdit(product); }}>Editar</button>
+                  <button onClick={(e) => { e.stopPropagation(); deleteProduct(product.id); }}>Excluir</button>
                 </div>
               </li>
             ))}
           </ul>
 
-          {/* Navegação de páginas */}
           <div className="pagination">
             {Array.from({ length: totalPages }, (_, index) => (
               <button
                 key={index}
                 className={currentPage === index + 1 ? 'active' : ''}
                 onClick={() => handlePageChange(index + 1)}
+                disabled={currentPage === index + 1}
               >
                 {index + 1}
               </button>
             ))}
           </div>
         </>
+      )}
+
+      {selectedProductId && (
+        <ProductDetails productId={selectedProductId} onClose={handleCloseDetails} />
       )}
     </div>
   );

@@ -1,74 +1,95 @@
+/* Definindo variáveis de cores */
+:root {
+  --primary-color: #3498db;
+  --secondary-color: #2980b9;
+  --background-color: #f4f7f6;
+  --text-color: #333;
+  --border-color: #ddd;
+  --box-shadow-color: rgba(0, 0, 0, 0.1);
+}
+
 /* Estilos globais */
 body {
-  font-family: 'Arial', sans-serif;
+  font-family: 'Roboto', 'Arial', sans-serif;
   margin: 0;
   padding: 0;
-  background-color: #f4f7f6;
-  color: #333;
+  background-color: var(--background-color);
+  color: var(--text-color);
 }
 
 /* Container principal */
 .App {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 20px;
+  max-width: 1000px;
+  margin: 20px auto;
+  padding: 30px;
   background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 6px 12px var(--box-shadow-color);
 }
 
 /* Títulos */
 h1, h2 {
   text-align: center;
-  color: #2c3e50;
-  margin-bottom: 20px;
+  color: var(--primary-color);
+  margin-bottom: 30px;
+  font-weight: 700;
 }
 
-/* Estilos para o formulário */
+/* Formulário de produtos */
 form {
-  margin-bottom: 20px;
+  margin-bottom: 30px;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 20px;
+  background-color: #f9f9f9;
+  padding: 25px;
+  border-radius: 8px;
 }
 
-/* Estilos para os inputs */
+/* Inputs do formulário */
 input[type="text"],
-input[type="number"] {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+input[type="number"],
+select {
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
   font-size: 16px;
   width: 100%;
   box-sizing: border-box;
-  transition: border-color 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 input[type="text"]:focus,
-input[type="number"]:focus {
-  border-color: #3498db;
+input[type="number"]:focus,
+select:focus {
+  border-color: var(--primary-color);
   outline: none;
-  box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+  box-shadow: 0 0 8px var(--primary-color);
 }
 
-/* Estilos para o botão */
+/* Botões */
 button {
-  padding: 10px 15px;
-  background-color: #3498db;
+  padding: 12px 20px;
+  background-color: var(--primary-color);
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 16px;
-  transition: background-color 0.3s ease;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
 }
 
 button:hover {
-  background-color: #2980b9;
+  background-color: var(--secondary-color);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px var(--box-shadow-color);
 }
 
 button:active {
   background-color: #1c5985;
+  transform: translateY(0);
 }
 
 /* Lista de produtos */
@@ -83,47 +104,115 @@ li {
   justify-content: space-between;
   align-items: center;
   background-color: #fff;
-  border: 1px solid #e0e0e0;
-  padding: 15px;
-  margin-bottom: 10px;
+  border: 1px solid var(--border-color);
+  padding: 20px;
+  margin-bottom: 15px;
   border-radius: 8px;
-  transition: box-shadow 0.3s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 li:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 16px var(--box-shadow-color);
+  transform: translateY(-5px);
 }
 
 /* Contêiner de conteúdo do produto */
 .product-content {
-  flex-grow: 1;  /* Permite que o conteúdo cresça conforme necessário */
-  margin-right: 20px;  /* Garante espaçamento entre o texto do produto e os botões */
+  flex-grow: 1;
+  margin-right: 20px;
+  font-size: 18px;
 }
 
-/* Estilos para o contêiner de botões */
+/* Contêiner de botões */
 .button-container {
   display: flex;
-  flex-shrink: 0;  /* Garante que o contêiner de botões não encolha */
+  flex-shrink: 0;
 }
 
-/* Espaçamento entre os botões */
 .button-container button {
   margin-left: 10px;
+}
+
+/* Barra de pesquisa e ordenação */
+.search-order-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 15px;
+}
+
+.search-order-container input,
+.search-order-container select {
+  flex: 1;
+}
+
+/* Paginação */
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.pagination button {
+  background-color: var(--primary-color);
+  border: none;
+  color: white;
+  padding: 10px 15px;
+  margin: 0 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.pagination button.active {
+  background-color: var(--secondary-color);
+  transform: scale(1.1);
+}
+
+.pagination button:hover {
+  background-color: var(--secondary-color);
+  transform: translateY(-2px);
+}
+
+.pagination button:disabled {
+  background-color: #ddd;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Modal de detalhes do produto */
+.product-details-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px var(--box-shadow-color);
+  padding: 20px;
+  z-index: 1000;
+  max-width: 90%;
+  width: 400px;
+}
+
+.product-details-modal .product-details-content h2 {
+  color: var(--primary-color);
 }
 
 /* Layout responsivo */
 @media (max-width: 768px) {
   .App {
-    padding: 15px;
+    padding: 20px;
+    margin: 10px;
   }
 
   form {
-    flex-direction: column;
-    gap: 10px;
+    padding: 20px;
   }
 
-  button {
-    width: 100%;
+  .search-order-container {
+    flex-direction: column;
   }
 
   li {
@@ -133,39 +222,11 @@ li:hover {
 
   .button-container {
     width: 100%;
-    margin-top: 10px;
-    display: flex;
-    justify-content: space-between;
+    margin-top: 15px;
+    justify-content: flex-end;
   }
-  /* Estilos para a paginação */
-.pagination {
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
-}
 
-.pagination button {
-  background-color: #3498db;
-  border: none;
-  color: white;
-  padding: 10px 15px;
-  margin: 0 5px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.pagination button.active {
-  background-color: #2980b9;
-}
-
-.pagination button:hover {
-  background-color: #2980b9;
-}
-
-.pagination button:disabled {
-  background-color: #ddd;
-  cursor: not-allowed;
-}
-
+  .pagination {
+    flex-wrap: wrap;
+  }
 }
